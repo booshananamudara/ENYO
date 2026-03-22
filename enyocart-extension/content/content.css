@@ -1,0 +1,248 @@
+/*
+ * EnyoCart Content Script Styles
+ * All selectors are prefixed "enyo-" to avoid collisions with host page styles.
+ * !important is used throughout so host-page specificity never wins.
+ */
+
+/* ── CSS Custom Properties ─────────────────────────────────────────────────── */
+:root {
+  --enyo-primary:    #1B3A5C;
+  --enyo-accent:     #2E75B6;
+  --enyo-success:    #27AE60;
+  --enyo-error:      #E74C3C;
+  --enyo-white:      #FFFFFF;
+  --enyo-shadow:     0 4px 16px rgba(27, 58, 92, 0.3);
+  --enyo-btn-size:   40px;
+  --enyo-transition: 200ms ease;
+}
+
+/* ── Overlay Root Container ────────────────────────────────────────────────── */
+#enyo-overlay-root {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+  pointer-events: none !important;
+  z-index: 2147483647 !important;
+  contain: none !important;
+}
+
+/* ── Base Overlay Button ───────────────────────────────────────────────────── */
+.enyo-add-btn {
+  /* Hard-reset all inherited/host-page styles */
+  all: unset !important;
+  box-sizing: border-box !important;
+
+  /* Layout */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: var(--enyo-btn-size) !important;
+  height: var(--enyo-btn-size) !important;
+  border-radius: 50% !important;
+
+  /* Appearance */
+  background: var(--enyo-primary) !important;
+  color: var(--enyo-white) !important;
+  border: 2px solid rgba(255, 255, 255, 0.25) !important;
+  cursor: pointer !important;
+  outline: none !important;
+
+  /* Elevation */
+  box-shadow: var(--enyo-shadow) !important;
+
+  /* Transitions */
+  transition:
+    transform var(--enyo-transition),
+    background var(--enyo-transition),
+    box-shadow var(--enyo-transition),
+    opacity var(--enyo-transition) !important;
+
+  opacity: 0.92 !important;
+}
+
+.enyo-add-btn svg {
+  pointer-events: none !important;
+  flex-shrink: 0 !important;
+  display: block !important;
+}
+
+.enyo-add-btn:hover {
+  background: var(--enyo-accent) !important;
+  transform: scale(1.15) !important;
+  opacity: 1 !important;
+  box-shadow: 0 6px 20px rgba(46, 117, 182, 0.55) !important;
+}
+
+.enyo-add-btn:active {
+  transform: scale(0.94) !important;
+}
+
+.enyo-add-btn:disabled {
+  cursor: default !important;
+  opacity: 0.6 !important;
+}
+
+/* Success state */
+.enyo-add-btn.enyo-btn--success {
+  background: var(--enyo-success) !important;
+  transform: scale(1.08) !important;
+  box-shadow: 0 4px 16px rgba(39, 174, 96, 0.45) !important;
+}
+
+/* ── Listing Page Overlay Button ───────────────────────────────────────────── */
+/*
+ * Listing buttons live inside #enyo-overlay-root and are positioned fixed
+ * using CSS custom properties set by JS (--enyo-pos-top, --enyo-pos-left).
+ * This avoids the !important vs inline-style conflict: we set the *property*
+ * inline, then the *position values* resolve through var() in our !important rule.
+ */
+.enyo-listing-btn {
+  position: fixed !important;
+  top:  var(--enyo-pos-top,  8px)  !important;
+  left: var(--enyo-pos-left, 8px)  !important;
+  right: auto !important;
+  bottom: auto !important;
+  /* Hide if JS sets --enyo-btn-visible to 0 */
+  opacity: calc(var(--enyo-btn-visible, 1) * 0.92) !important;
+  pointer-events: auto !important;
+}
+
+.enyo-listing-btn:hover {
+  opacity: 1 !important;
+}
+
+/* ── Detail Page Float Button ──────────────────────────────────────────────── */
+@keyframes enyo-pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(46, 117, 182, 0.6); }
+  70%  { box-shadow: 0 0 0 12px rgba(46, 117, 182, 0);  }
+  100% { box-shadow: 0 0 0 0   rgba(46, 117, 182, 0);   }
+}
+
+.enyo-detail-btn {
+  /* Override position from .enyo-add-btn */
+  position: fixed !important;
+  bottom: 32px !important;
+  right: 32px !important;
+  top: auto !important;
+  left: auto !important;
+
+  /* Larger than listing buttons */
+  width: 56px !important;
+  height: 56px !important;
+  z-index: 2147483647 !important;
+
+  /* Pulsing glow so the user notices it immediately */
+  animation: enyo-pulse 2s ease-out infinite !important;
+  box-shadow: 0 6px 24px rgba(27, 58, 92, 0.4) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.enyo-detail-btn:hover {
+  animation: none !important;
+  transform: scale(1.12) translateY(-2px) !important;
+  box-shadow: 0 8px 28px rgba(46, 117, 182, 0.6) !important;
+}
+
+/* ── Tooltip ───────────────────────────────────────────────────────────────── */
+.enyo-tooltip {
+  all: unset !important;
+  box-sizing: border-box !important;
+
+  display: block !important;
+  position: absolute !important;
+  bottom: calc(100% + 8px) !important;
+  right: 0 !important;
+  white-space: nowrap !important;
+  padding: 5px 10px !important;
+
+  background: var(--enyo-primary) !important;
+  color: var(--enyo-white) !important;
+  font-size: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+  pointer-events: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+
+  opacity: 0 !important;
+  transform: translateY(4px) !important;
+  transition: opacity 150ms ease, transform 150ms ease !important;
+}
+
+.enyo-tooltip::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 100% !important;
+  right: 12px !important;
+  border: 5px solid transparent !important;
+  border-top-color: var(--enyo-primary) !important;
+}
+
+.enyo-add-btn:hover .enyo-tooltip {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* ── Toast Container ───────────────────────────────────────────────────────── */
+#enyo-toast-container {
+  position: fixed !important;
+  bottom: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  pointer-events: none !important;
+}
+
+/* ── Toast ─────────────────────────────────────────────────────────────────── */
+.enyo-toast {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 18px !important;
+  border-radius: 24px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--enyo-white) !important;
+  background: var(--enyo-primary) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22) !important;
+  pointer-events: none !important;
+  max-width: 360px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+
+  opacity: 0 !important;
+  transform: translateY(12px) scale(0.95) !important;
+  transition: opacity 300ms ease, transform 300ms ease !important;
+}
+
+.enyo-toast--visible {
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+}
+
+.enyo-toast--success { background: var(--enyo-success) !important; }
+.enyo-toast--error   { background: var(--enyo-error)   !important; }
+
+.enyo-toast__icon {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}
+
+.enyo-toast__msg {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 280px !important;
+}
