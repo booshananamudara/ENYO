@@ -2,15 +2,14 @@
   "manifest_version": 3,
   "name": "EnyoCart — Shop Anywhere, Checkout Once",
   "short_name": "EnyoCart",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Add products from any online store to one secure cart. Pay with crypto, cards, local methods & more.",
   "author": "ENYO",
 
   "permissions": [
     "storage",
     "activeTab",
-    "sidePanel",
-    "tabs"
+    "sidePanel"
   ],
 
   "host_permissions": [
