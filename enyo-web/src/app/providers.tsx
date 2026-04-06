@@ -1,0 +1,14 @@
+'use client';
+
+import { SessionProvider } from 'next-auth/react';
+import { CartProvider } from '@/contexts/cart-context';
+import type { ReactNode } from 'react';
+
+/** Client-side providers wrapper for session and cart state. */
+export function Providers({ children }: { children: ReactNode }) {
+  return (
+    <SessionProvider>
+      <CartProvider>{children}</CartProvider>
+    </SessionProvider>
+  );
+}

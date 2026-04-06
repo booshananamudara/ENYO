@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: enyo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: enyo
+      POSTGRES_PASSWORD: enyo_secret
+      POSTGRES_DB: enyo
+    ports:
+      - "5432:5432"
+    volumes:
+      - enyo_pgdata:/var/lib/postgresql/data
+
+volumes:
+  enyo_pgdata:

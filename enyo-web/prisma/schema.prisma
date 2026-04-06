@@ -1,0 +1,300 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAYMENT_CONFIRMED
+  PROCESSING
+  ORDERING_FROM_VENDOR
+  ORDERED_FROM_VENDOR
+  SHIPPED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  CONFIRMED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  CRYPTO_BITCOIN
+  CRYPTO_ETHEREUM
+  CRYPTO_USDT
+  CRYPTO_OTHER
+  PROMPTPAY
+  GIROPAY
+  IDEAL
+  PAY_BY_CASH
+  OTHER_LOCAL
+}
+
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  SHIPPING_LABEL_SENT
+  IN_TRANSIT
+  RECEIVED_BY_VENDOR
+  REFUND_PROCESSING
+  REFUND_COMPLETED
+  ENYO_CREDIT_ISSUED
+  DENIED
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  THB
+  AUD
+  CAD
+  JPY
+  CNY
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String?
+  name          String
+  phone         String?
+  role          UserRole  @default(CUSTOMER)
+  emailVerified DateTime?
+  image         String?
+  enyoCredit    Decimal   @default(0) @db.Decimal(12, 2)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  addresses Address[]
+  orders    Order[]
+  returns   Return[]
+  accounts  Account[]
+  sessions  Session[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  userId     String
+  label      String?
+  fullName   String
+  phone      String?
+  line1      String
+  line2      String?
+  city       String
+  state      String?
+  postalCode String
+  country    String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  orderNumber   String      @unique
+  userId        String
+  addressId     String?
+  status        OrderStatus @default(PENDING_PAYMENT)
+  subtotal      Decimal     @db.Decimal(12, 2)
+  serviceFee    Decimal     @db.Decimal(12, 2)
+  fxSurcharge   Decimal     @default(0) @db.Decimal(12, 2)
+  shippingFee   Decimal     @default(0) @db.Decimal(12, 2)
+  total         Decimal     @db.Decimal(12, 2)
+  currency      Currency    @default(USD)
+  customerNotes String?     @db.Text
+  adminNotes    String?     @db.Text
+  fulfilledBy   String?
+  fulfilledAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user          User                @relation(fields: [userId], references: [id])
+  address       Address?            @relation(fields: [addressId], references: [id])
+  items         OrderItem[]
+  payment       Payment?
+  returns       Return[]
+  statusHistory OrderStatusHistory[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id               String   @id @default(uuid())
+  orderId          String
+  productTitle     String
+  productUrl       String
+  productImage     String?
+  vendorName       String
+  vendorUrl        String?
+  quantity         Int      @default(1)
+  unitPrice        Decimal  @db.Decimal(12, 2)
+  totalPrice       Decimal  @db.Decimal(12, 2)
+  originalCurrency String?
+  originalPrice    Decimal? @db.Decimal(12, 2)
+  metadata         Json?
+  vendorOrderId    String?
+  vendorOrderStatus String?
+  actualCostPaid   Decimal? @db.Decimal(12, 2)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([vendorName])
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  orderId        String        @unique
+  method         PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  amount         Decimal       @db.Decimal(12, 2)
+  currency       Currency      @default(USD)
+  bankfulTxId    String?       @unique
+  cryptoAddress  String?
+  cryptoCurrency String?
+  cryptoAmount   Decimal?      @db.Decimal(18, 8)
+  exchangeRate   Decimal?      @db.Decimal(18, 8)
+  processingFee  Decimal?      @db.Decimal(12, 2)
+  paidAt         DateTime?
+  failedAt       DateTime?
+  failureReason  String?
+  refundedAmount Decimal?      @db.Decimal(12, 2)
+  refundedAt     DateTime?
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([status])
+  @@index([bankfulTxId])
+  @@index([createdAt])
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(uuid())
+  orderId   String
+  status    OrderStatus
+  note      String?
+  changedBy String?
+  createdAt DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model Return {
+  id               String       @id @default(uuid())
+  returnNumber     String       @unique
+  orderId          String
+  userId           String
+  status           ReturnStatus @default(REQUESTED)
+  reason           String       @db.Text
+  resolution       String?
+  refundAmount     Decimal?     @db.Decimal(12, 2)
+  enyoCreditAmount Decimal?     @db.Decimal(12, 2)
+  shippingLabelUrl String?
+  trackingNumber   String?
+  adminNotes       String?      @db.Text
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  order Order      @relation(fields: [orderId], references: [id])
+  user  User       @relation(fields: [userId], references: [id])
+  items ReturnItem[]
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
+}
+
+model ReturnItem {
+  id          String  @id @default(uuid())
+  returnId    String
+  orderItemId String
+  quantity    Int     @default(1)
+  reason      String?
+
+  return Return @relation(fields: [returnId], references: [id], onDelete: Cascade)
+
+  @@index([returnId])
+}
+
+model ExchangeRateSetting {
+  id               String   @id @default(uuid())
+  currency         String   @unique
+  type             String
+  baseRate         Decimal  @db.Decimal(18, 8)
+  surchargePercent Decimal  @db.Decimal(5, 2)
+  isActive         Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+  updatedBy        String?
+
+  @@index([type])
+}
+
+model AppSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+}
