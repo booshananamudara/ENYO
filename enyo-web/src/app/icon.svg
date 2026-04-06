@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="EnyoCart Logo">
+  <!-- Background rectangle -->
+  <rect width="128" height="128" rx="24" fill="#1B3A5C"/>
+
+  <!-- Stylised "E" with integrated cart/arrow motif -->
+  <!-- Top bar of E -->
+  <path d="M28 34h72" stroke="#2E75B6" stroke-width="9" stroke-linecap="round"/>
+  <!-- Middle bar of E (shorter) -->
+  <path d="M28 64h52" stroke="#2E75B6" stroke-width="9" stroke-linecap="round"/>
+  <!-- Bottom bar of E -->
+  <path d="M28 94h72" stroke="#2E75B6" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- Arrow / cart indicator pointing right from centre -->
+  <path d="M64 94V34l24 30-24 30z" fill="#2E75B6" opacity="0.9"/>
+
+  <!-- Highlight dot (brand accent) -->
+  <circle cx="96" cy="64" r="8" fill="#FFFFFF" opacity="0.15"/>
+</svg>
